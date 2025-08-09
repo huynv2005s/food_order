@@ -24,13 +24,26 @@ enum Role {
   USER
   ADMIN
   DRIVER
-  CUSTOMER
 }
 
 model User {
-  id       String @id @default(uuid())
-  name     String
-  role     Role
-  email    String
-  password String
+  id            String         @id @default(uuid())
+  username      String         @unique
+  email         String         @unique
+  password      String
+  role          Role           @default(USER)
+  created_at    DateTime       @default(now())
+  updated_at    DateTime       @updatedAt()
+  number_phone  String?
+  refreshTokens RefreshToken[]
+}
+
+model RefreshToken {
+  id         String    @id @default(uuid())
+  user_id    String
+  token      String    @unique
+  expires_at DateTime
+  revoked_at DateTime?
+
+  user User @relation(fields: [user_id], references: [id])
 }

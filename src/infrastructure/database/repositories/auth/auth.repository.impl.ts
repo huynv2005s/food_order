@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/infrastructure/database/prisma/prisma.service';
 import { IUserRepository } from 'src/domain/user/user.repository';
-import { User } from 'src/domain/user/user.entity';
+import { UserEntity } from 'src/domain/user/user.entity';
 import { IAuthRepository } from 'src/domain/auth/auth.repository';
 import { RegisterUserDto } from 'src/presentation/auth/dto/auth.dto';
 
@@ -15,7 +15,7 @@ export class PrismaAuthRepository implements IAuthRepository {
     //     });
     //     return new User({ ...createdUser });
     // }
-    // async login(): Promise<User[]> {
-    //     return await this.prisma.user.findMany()
-    // }
+    async login(): Promise<UserEntity[]> {
+        return await this.prisma.user.findMany()
+    }
 }

@@ -1,6 +1,6 @@
-import { Food } from './food.entity';
+import { FoodEntity } from './food.entity';
 
 export interface IFoodRepository {
-    create(food: Food): Promise<Food>;
-    findAll(): Promise<Food[]>;
+    create(food: FoodEntity): Promise<FoodEntity>;
+    findAll(): Promise<FoodEntity[]>;
 }

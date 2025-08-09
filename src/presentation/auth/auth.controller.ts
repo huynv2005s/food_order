@@ -11,5 +11,10 @@ export class AuthController {
     return this.register.execute(data);
   }
 
+  @Post('login')
+  signin(@Body() data: RegisterUserDto) {
+    return this.register.execute(data);
+  }
+
 
 }

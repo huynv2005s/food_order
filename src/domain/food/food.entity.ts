@@ -1,4 +1,4 @@
-export class Food {
+export class FoodEntity {
     constructor(
         public readonly id: string,
         public name: string,

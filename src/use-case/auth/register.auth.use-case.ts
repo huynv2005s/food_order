@@ -1,8 +1,8 @@
 import { Inject } from "@nestjs/common";
-import { IAuthRepository } from "src/domain/auth/auth.repository";
-import { User } from "src/domain/user/user.entity";
+import { UserEntity } from "src/domain/user/user.entity";
 import { IUserRepository } from "src/domain/user/user.repository";
 import { RegisterUserDto } from "src/presentation/auth/dto/auth.dto";
+import { UserRole } from "src/presentation/user/dto/user.dto";
 
 export class RegisterUseCase {
     constructor(@Inject('IUserRepository')
@@ -10,7 +10,13 @@ export class RegisterUseCase {
     ) { }
 
     async execute(data: RegisterUserDto): Promise<unknown> {
-        const newUser = new User("id", data.name, "USER", data.email, data.password);
+        const newUser = new UserEntity({
+            id: 'generated-id',
+            username: data.username,
+            role: UserRole.USER,
+            email: data.email,
+            password: data.password
+        });
         return await this.userRepository.create(newUser);
     }
 }
