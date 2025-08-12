@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Lấy Vị Trí Hiện Tại</title>
+</head>
+
+<body>
+    <p>Nhấp vào nút dưới đây để lấy vị trí của bạn:</p>
+    <button onclick="getLocation()">Lấy vị trí</button>
+    <p id="location-info"></p>
+
+    <script>
+        function getLocation() {
+            // Kiểm tra xem trình duyệt có hỗ trợ Geolocation API không
+            if (navigator.geolocation) {
+                // Lấy vị trí hiện tại của người dùng
+                navigator.geolocation.getCurrentPosition(showPosition, showError);
+            } else {
+                // Hiển thị thông báo nếu trình duyệt không hỗ trợ
+                document.getElementById("location-info").innerHTML = "Geolocation không được hỗ trợ bởi trình duyệt này.";
+            }
+        }
+
+        // Hàm xử lý khi lấy vị trí thành công
+        function showPosition(position) {
+            var latitude = position.coords.latitude;
+            var longitude = position.coords.longitude;
+            var info = "Vĩ độ: " + latitude + "<br>Kinh độ: " + longitude;
+            document.getElementById("location-info").innerHTML = info;
+
+            // Bạn có thể sử dụng các tọa độ này để thêm một điểm đánh dấu vào bản đồ của mình
+            // Ví dụ với Leaflet: L.marker([latitude, longitude]).addTo(map);
+        }
+
+        // Hàm xử lý khi có lỗi xảy ra
+        function showError(error) {
+            switch (error.code) {
+                case error.PERMISSION_DENIED:
+                    document.getElementById("location-info").innerHTML = "Người dùng từ chối yêu cầu Geolocation.";
+                    break;
+                case error.POSITION_UNAVAILABLE:
+                    document.getElementById("location-info").innerHTML = "Thông tin vị trí không khả dụng.";
+                    break;
+                case error.TIMEOUT:
+                    document.getElementById("location-info").innerHTML = "Yêu cầu lấy vị trí đã hết thời gian.";
+                    break;
+                case error.UNKNOWN_ERROR:
+                    document.getElementById("location-info").innerHTML = "Một lỗi không xác định đã xảy ra.";
+                    break;
+            }
+        }
+    </script>
+</body>
+
+</html>

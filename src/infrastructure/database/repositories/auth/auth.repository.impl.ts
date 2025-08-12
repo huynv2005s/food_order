@@ -16,6 +16,18 @@ export class PrismaAuthRepository implements IAuthRepository {
     //     return new User({ ...createdUser });
     // }
     async login(): Promise<UserEntity[]> {
-        return await this.prisma.user.findMany()
+        return await this.prisma.users.findMany()
+    }
+    async validateUser(email: string, password: string): Promise<any> {
+        const user = await this.prisma.users.findFirst({
+            where: {
+                email,
+                password
+            }
+        });
+        if (!user) {
+            return null;
+        }
+        return user;
     }
 }

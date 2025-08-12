@@ -8,11 +8,8 @@ export class CreateUserUseCase {
     async execute(createUserDto: CreateUserDto): Promise<UserEntity> {
         const { username, email, password } = createUserDto;
 
-        // Here you would typically hash the password before saving
         const user = new UserEntity({
-            id: 'generated-id',
             username: username,
-            role: UserRole.USER,
             email,
             password
         });

@@ -3,30 +3,39 @@ import { PrismaService } from 'src/infrastructure/database/prisma/prisma.service
 import { IUserRepository } from 'src/domain/user/user.repository';
 import { UserEntity } from 'src/domain/user/user.entity';
 import { CreateUserDto } from 'src/presentation/user/dto/user.dto';
+import { UserMapper } from '../../mappers/user.mapper';
+import { Prisma } from '@prisma/client';
+import { BaseRepository } from 'src/shared/bases/base.repository';
 
 @Injectable()
-export class PrismaUserRepository implements IUserRepository {
-    constructor(private readonly prisma: PrismaService) { }
+export class PrismaUserRepository extends BaseRepository implements IUserRepository {
+    constructor(protected readonly prisma: PrismaService) {
+        super(prisma);
+    }
 
-    async create(user: any): Promise<UserEntity> {
-        const createdUser = await this.prisma.user.create({
-            data: { ...user }
+    async create(
+        user: CreateUserDto,
+        tx?: Prisma.TransactionClient
+    ): Promise<UserEntity> {
+        // const db = this.getDb(tx);
+        const created = await this.getDb(tx).users.create({
+            data: UserMapper.toPrisma(user),
         });
-        return createdUser
+        return UserMapper.toDomain(created);
     }
     async findById(id: string) {
-        const user = await this.prisma.user.findUnique({
+        const user = await this.prisma.users.findUnique({
             where: { id }
         });
         if (!user) { new NotFoundException(`User with id ${id} not found`); }
         return user
     }
-    async findByEmail(email: string) {
-        const user = await this.prisma.user.findFirst({
+    async findByEmail(email: string, tx?: Prisma.TransactionClient) {
+        const user = await this.getDb(tx).users.findUnique({
             where: { email }
         });
         if (!user) { new NotFoundException(`User with id ${email} not found`); }
-        return user
+        return user ? UserMapper.toDomain(user) : null;
     }
 
 }

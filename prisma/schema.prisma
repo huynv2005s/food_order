@@ -13,37 +13,316 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model Food {
-  id          String @id @default(uuid())
-  name        String
-  price       Int
-  description String
-}
-
 enum Role {
   USER
   ADMIN
   DRIVER
 }
 
-model User {
-  id            String         @id @default(uuid())
-  username      String         @unique
-  email         String         @unique
-  password      String
-  role          Role           @default(USER)
-  created_at    DateTime       @default(now())
-  updated_at    DateTime       @updatedAt()
-  number_phone  String?
-  refreshTokens RefreshToken[]
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+  DELETED
 }
 
-model RefreshToken {
+enum DriverStatus {
+  AVAILABLE
+  UNAVAILABLE
+  DELETED
+}
+
+// model User {
+//   id            String         @id @default(uuid())
+//   username      String         @unique
+//   email         String         @unique
+//   password      String
+//   role          Role           @default(USER)
+//   created_at    DateTime       @default(now())
+//   updated_at    DateTime       @updatedAt()
+//   number_phone  String?
+//   refreshTokens RefreshToken[]
+// }
+
+// model RefreshToken {
+//   id         String    @id @default(uuid())
+//   user_id    String
+//   token      String    @unique
+//   expires_at DateTime
+//   revoked_at DateTime?
+
+//   user User @relation(fields: [user_id], references: [id])
+// }
+
+model users {
+  id              String         @id @default(uuid())
+  email           String         @unique
+  password        String
+  username        String
+  user_created_at DateTime       @default(now())
+  user_updated_at DateTime       @updatedAt
+  user_status     UserStatus     @default(ACTIVE)
+  // sessions        sessions[]
+  refreshToken    refresh_token?
+  user_roles      user_roles[]
+  orders          orders[]
+  drivers         drivers?
+  points          points?
+}
+
+model refresh_token {
+  id            String    @id @default(uuid())
+  user_id       String    @unique
+  access_token  String
+  refresh_token String
+  created_at    DateTime  @default(now())
+  expires_at    DateTime
+  revoked_at    DateTime?
+  user          users     @relation(fields: [user_id], references: [id])
+}
+
+// model sessions {
+//   id         String   @id @default(uuid())
+//   user_id    String
+//   user_agent String
+//   ip_address String
+//   created_at DateTime @default(now())
+//   user       users    @relation(fields: [user_id], references: [id])
+// }
+
+model drivers {
+  id                String       @id @default(uuid())
+  user_id           String       @unique
+  driver_name       String
+  license_plate     String
+  driver_status     DriverStatus @default(UNAVAILABLE)
+  driver_created_at DateTime     @default(now())
+  user              users        @relation(fields: [user_id], references: [id])
+  deliveries        deliveries[]
+}
+
+enum voucherType {
+  PERCENTAGE
+  FIXED_AMOUNT
+}
+
+model vouchers {
+  id                String      @id @default(uuid())
+  voucher_name      String
+  discount_value    Float
+  voucher_type      voucherType
+  min_order_value   Float
+  voucher_start_day DateTime
+  voucher_end_day   DateTime
+  voucher_status    Boolean
+}
+
+model points {
+  id           String   @id @default(uuid())
+  points       Int
+  user_id      String   @unique
+  last_updated DateTime @updatedAt
+  user         users    @relation(fields: [user_id], references: [id])
+}
+
+enum OrderStatus {
+  PENDING
+  PROCESSING
+  DELIVERING
+  COMPLETED
+  CANCELLED
+}
+
+model orders {
+  id               String        @id @default(uuid())
+  user_id          String
+  total_amount     Float
+  shipping_fee     Float
+  final_amount     Float
+  notes            String?
+  order_created_at DateTime      @default(now())
+  order_status     OrderStatus   @default(PENDING)
+  order_updated_at DateTime      @updatedAt
+  user             users         @relation(fields: [user_id], references: [id])
+  order_items      order_items[]
+  delivery         deliveries[]
+  payments         payments[]
+}
+
+model order_items {
   id         String    @id @default(uuid())
-  user_id    String
-  token      String    @unique
-  expires_at DateTime
-  revoked_at DateTime?
-
-  user User @relation(fields: [user_id], references: [id])
+  order_id   String
+  product_id String
+  topping_id String?
+  quantity   Int
+  price      Float
+  order      orders    @relation(fields: [order_id], references: [id])
+  product    products  @relation(fields: [product_id], references: [id])
+  topping    toppings? @relation(fields: [topping_id], references: [id])
 }
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  FAILED
+  REFUNDED
+}
+
+model payments {
+  id             String        @id @default(uuid())
+  order_id       String
+  payment_amount Float
+  payment_method String
+  payment_status PaymentStatus @default(PENDING)
+  payment_date   DateTime      @updatedAt
+  order          orders        @relation(fields: [order_id], references: [id])
+}
+
+enum DeliveryStatus {
+  PENDING
+  IN_TRANSIT
+  DELIVERED
+  CANCELLED
+}
+
+model deliveries {
+  id                 String         @id @default(uuid())
+  order_id           String         @unique
+  driver_id          String
+  order_status       String
+  shipping_cost      Float
+  delivery_status    DeliveryStatus @default(PENDING)
+  delivery_update_at DateTime       @updatedAt
+  delivery_location  String
+  order              orders         @relation(fields: [order_id], references: [id])
+  driver             drivers        @relation(fields: [driver_id], references: [id])
+  tracking           tracking[]
+}
+
+model tracking {
+  id          String     @id @default(uuid())
+  delivery_id String
+  longitude   Float
+  latitude    Float
+  timestamp   DateTime   @default(now())
+  delivery    deliveries @relation(fields: [delivery_id], references: [id])
+}
+
+enum CategoryStatus {
+  ACTIVE
+  INACTIVE
+}
+
+model categories {
+  id              String         @id @default(uuid())
+  cat_name        String
+  cat_description String?
+  cat_status      CategoryStatus @default(ACTIVE)
+  cat_created_at  DateTime       @default(now())
+  products        products[]
+}
+
+enum ProductStatus {
+  ACTIVE
+  INACTIVE
+  DISCONTINUED
+}
+
+model products {
+  id               String        @id @default(uuid())
+  category_id      String
+  prod_name        String
+  prod_description String?
+  prod_price       Float
+  prod_created_at  DateTime      @default(now())
+  prod_updated_at  DateTime      @updatedAt
+  prod_status      ProductStatus @default(ACTIVE)
+  category         categories    @relation(fields: [category_id], references: [id])
+  order_items      order_items[]
+  // flash_sales      flash_sales[]
+  // combos           combos[]
+  // gifts            gifts[]
+  images           images[]
+}
+
+enum ImageStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+}
+
+model images {
+  id               String      @id @default(uuid())
+  product_id       String
+  public_id        String
+  secure_url       String
+  image_created_at DateTime    @default(now())
+  image_status     ImageStatus @default(PENDING)
+  product          products    @relation(fields: [product_id], references: [id])
+}
+
+model toppings {
+  id             String        @id @default(uuid())
+  topping_name   String
+  topping_price  Float
+  topping_status String
+  order_items    order_items[]
+}
+
+model permissions {
+  id               String             @id @default(uuid())
+  perm_name        String
+  perm_description String?
+  role_permissions role_permissions[]
+}
+
+model roles {
+  id               String             @id @default(uuid())
+  role_name        String
+  role_permissions role_permissions[]
+  user_roles       user_roles[]
+}
+
+model role_permissions {
+  role_id       String
+  permission_id String
+  role          roles       @relation(fields: [role_id], references: [id])
+  permission    permissions @relation(fields: [permission_id], references: [id])
+
+  @@id([role_id, permission_id])
+}
+
+model user_roles {
+  user_id String
+  role_id String
+  user    users  @relation(fields: [user_id], references: [id])
+  role    roles  @relation(fields: [role_id], references: [id])
+
+  @@id([user_id, role_id])
+}
+
+// model combos {
+//   id           String   @id @default(uuid())
+//   prod_id      String   @unique
+//   combo_name   String
+//   combo_price  Float
+//   combo_status String
+//   product      products @relation(fields: [prod_id], references: [id])
+// }
+
+// model gifts {
+//   id        String   @id @default(uuid())
+//   prod_id   String   @unique
+//   gift_name String
+//   product   products @relation(fields: [prod_id], references: [id])
+// }
+
+// model flash_sales {
+//   id          String   @id @default(uuid())
+//   prod_id     String   @unique
+//   sale_name   String
+//   sale_start  DateTime
+//   sale_end    DateTime
+//   sale_status String
+//   product     products @relation(fields: [prod_id], references: [id])
+// }
