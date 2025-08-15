@@ -5,7 +5,7 @@ export interface UserProps {
     password: string;
 }
 export interface RegisterUseCaseParams {
-    id: string;
+    id?: string;
     username: string;
     email: string;
     password: string;

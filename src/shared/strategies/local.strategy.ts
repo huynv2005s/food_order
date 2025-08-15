@@ -12,7 +12,6 @@ export class LocalStrategy extends PassportStrategy(Strategy) {
             usernameField: 'email',
             passwordField: 'password'
         });
-        // console.log('LocalStrategy initialized');
     }
 
     async validate(username: string, password: string): Promise<any> {
